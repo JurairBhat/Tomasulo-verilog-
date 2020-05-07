@@ -1,26 +1,29 @@
 /* This module gets the instruction from the memory
 puts the data in instruction queue */
 module fetch(
-  input [3:0] pc,
-  input iq_r,
-   // it only write in intruction register if iq_r = 1
-  output reg [31:0] instruction,
-  output reg fetch_complete// this instructs whether fetch is complete or not
+            input [3:0] pc
 
   );
   reg
-  always@(posedge clk) begin
-
-  end
-
-
+always@(posedge clk)
+begin
+  if(run.main.iq_f)
+    begin// it only write in intruction queue if iq_f = 1;
+       run.main.instruction_queue[run.main.instruction_queue_ptr] = run.main.instruction_memory[pc];
+       run.main.instruction_queue_ptr =  run.main.instruction_queue_ptr + 1'b1;
+       if(run.main.instruction_queue_ptr == 4)//4 = length of instruction_queue
+              run.main.iq_r = 0; // instruction_queue_is_full --> dont allow write for further instructionss
+    end
+ else
+  $display("Instruction Queue is full ,PC = %b instruction waiting",pc);
+end
 endmodule
 
-/*this module decodes and generates the control signal
+/*this module decodes the signal  and add the entry to the ROB;
 /and the sends the istruction to appropriate  reservation station */
 module decode(
   input [31:0] instruction,
-
+  
   output control_signal// assuming 2 functional units for every operation
   );
 endmodule

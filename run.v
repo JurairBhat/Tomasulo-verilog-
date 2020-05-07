@@ -20,16 +20,49 @@
 
 module run ;
 
-reg [11:0]instruction_memory [0:15];// initializing memory
-reg clk;
-reg[3:0] pc ;
+//Initializing memory
+reg [11:0]instruction_memory [0:15];//
 
+// This is instruction Queue
+reg [11:0]isntruction_queue[0:3];
+reg iq_f;
+reg [1:0]instruction_queue_ptr;// this points to the next entry in instruction_queue
+
+// ROB
+// ROB size is = 8
+reg [3:0]rob_opcode_feild[0:7];//ROB isntruction feild
+reg [3:0]destination_reg_feild[0:7]// ROB destination register feild
+reg valid_value[0:7];// 0 = unvalid ,1 = valid ; Ready to retire once it = 1
+reg commit[0:7];// indicates whether the particular entry has committed or not
+reg [2:0]head;// ROB head
+reg [2:0]tail;// ROB tail
+// Reservation station
+res_add_sub
+res_mul_div
+//
+// LSQ
+reg clk;
+reg [3:0]pc ;
+
+//
 main m(pc , );
 
+integer i ;
 initial begin
-  pc = 4'b0000;
   clk = 1'b0;
-  //readmemh("instruction_memory",instruction_memory);
+
+  pc = 4'b0000;
+  iq_f = 1'b1;
+
+  head = 3'b000;
+  tail = 3'b000;
+
+  i = 0;
+  while(i<8) begin
+    commit[i] = 0 ; // this while loops just initializes commit array to 0;
+  end
+
+  readmemh("instruction_memory",instruction_memory);
 end
 always #5 clk = ~clk ;
 
