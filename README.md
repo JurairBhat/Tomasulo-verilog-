@@ -1,7 +1,7 @@
 # tomasulo-verilog-
 
-This the driver module.
-We assume we have 12 bit ISA.
+This the driver module.\n
+We assume we have 12 bit ISA.\n
 Operation : Load 0101, store 0100 , divide 0011 , mul 0010 , add 0001 , sub 0000.
 we have eight registers r1 ------ r16 (0000 ------  10000);
 we will 4 bits instead of 3 bits to address them for future addition of registes.
