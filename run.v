@@ -27,13 +27,15 @@ reg [15:0]instruction_memory [0:15];//
 
 //Initializing register File
 //register_file[0]=R0 and so on--------
-reg [7:0]register_file[0:15]// we have 16 register each 1 byte in size;
+reg [7:0]reg_file[0:15]// we have 16 register each 1 byte in size;
+reg reg_valid[0:15];
+reg [2:0]reg_rename[0:15];  // renaming corresponding to ROB
 
 
 // This is instruction Queue
 reg [15:0]isntruction_queue[0:3];
 reg iq_f;
-reg [1:0]instruction_queue_ptr;// this points to the next entry in instruction_queue
+reg [1:0]instruction_queue_tail;// this points to the next empty location in instruction_queue
 
 // ROB
   // opcode des v_des commit
@@ -50,9 +52,11 @@ reg rob_space; // this is 0 when ROB is full and 1 when it has entry;
 
 // Reservation station for add and sub = res1
        // Size of res = 4 instruction;
-reg [3:0]res1_opcode[0:3];
+reg res1_free_entry[0:3];// gives us the list of free enteries; 1 = free ,0 = busy
+reg res1_full //1 = full , 0 = not full
 
-reg [3:0]res1_sr1[0:3]; // sr1 regiter
+reg [3:0]res1_opcode[0:3];
+//reg [3:0]res1_sr1[0:3]; // sr1 regiter
 reg [7:0]res1_sr1_value[0:3];// sr1 value
 reg res1_v1[0:3];// sr1 valid or not
 
@@ -66,7 +70,11 @@ reg res1_v3[0:3]// dest value valid or not
 
 //Reservation station for mul
     // Size of res_mul = 2 instruction;
+
 reg [3:0]res2_opcode[0:1];
+
+reg res2_free_entry[0:3];// gives us the list of free enteries; 1 = free ,0 = busy
+reg res2_full //1 = full , 0 = not full
 
 reg [3:0]res2_sr1[0:1]; // sr1 regiter
 reg [7:0]res2_sr1_value[0:1];// sr1 value
@@ -83,6 +91,8 @@ reg res2_v3[0:1]// dest value valid or not
 //Reservation Station for divide
     // Size of divide = 2 instruction;
 reg [3:0]res3_opcode[0:1];
+reg res3_free_entry[0:1];// gives us the list of free enteries; 1 = free ,0 = busy
+reg res3_full //1 = full , 0 = not full
 
 reg [3:0]res3_sr1[0:1]; // sr1 regiter
 reg [7:0]res3_sr1_value[0:1];// sr1 value
