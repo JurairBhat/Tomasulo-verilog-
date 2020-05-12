@@ -1,18 +1,18 @@
-module topLevel(output [2:0] Output);
-  reg[2'b10:2'b00] PC;
+module ilevel();
 
-  sum s1();
-
-  assign Output = PC;
-
-  initial
-  $monitor($time,"PC - %b", PC);
+  always @(posedge sum.clk)begin
+  $display("block1");
+  end
 endmodule
 
-module sum();
-  initial begin
+module olevel();
+  always @(posedge sum.clk)begin
+  $display("block2");
+  end
+endmodule
 
-  topLevel.PC = 3'b111 ;
-  topLevel.PC = #10 3'b101 ;
-end
+module top();
+     olevel o();
+     ilevel i();
+
 endmodule

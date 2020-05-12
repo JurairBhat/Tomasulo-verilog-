@@ -1,149 +1,180 @@
+module issue( );
+   fetch f();
+   decode d();
+endmodule
+
 /* This module gets the instruction from the memory
 puts the data in instruction queue */
-
-module fetch(
-
-  );
+module fetch();
 //reg [3:0]previous_pc,current_pc;// this will account for stall  condition
-
-always@(posedge clk)
+always@(posedge run.clk)
 begin
-  if(run.main.iq_f)
-    begin// it only write in intruction queue if iq_f = 1;
-       run.main.instruction_queue[run.main.instruction_queue_tail] = run.main.instruction_memory[pc];
-       run.main.instruction_queue_tail =  (run.main.instruction_queue_tail + 2'b01);
-       if(run.main.instruction_queue_tail == run.main.instruction_queue_head))//4 = length of instruction_queue
-              run.main.iq_f = 0; // instruction_queue_is_full --> dont allow write for further instructions
-       run.main.pc = run.main.pc + 4'b0001;// next instruction to be fetched;
+  #1
+  $display("--- FETCH STAGE ----  ",);
+  if(!run.iq_f)
+    begin// it only write in intruction queue if iq_f = 0;
+       run.instruction_queue[run.instruction_queue_tail] = run.instruction_memory[run.pc];
+       $display("Fetched : %h ",run.instruction_queue[run.instruction_queue_tail]);
+       run.instruction_queue_no_of_enteries = run.instruction_queue_no_of_enteries + 1;
+       run.instruction_queue_tail =  run.instruction_queue_tail + 2'b01;
+       if(run.instruction_queue_no_of_enteries == 4)//4 = length of instruction_queue
+              run.iq_f = 1'b1; // instruction_queue_is_full --> dont allow write for further instructions
+       run.pc = run.pc + 4'b0001;// next instruction to be fetched;
     end
  else
-  $display("Instruction Queue is full ,PC = %b instruction waiting",pc);
+  $display(" Stall , IQ : Full , Next PC = %b  :  ",run.pc);
 end
 endmodule
 
 /*this module decodes the signal, add the entry to the ROB,
 /and the sends the istruction to appropriate  reservation station */
-module decode(
-  // assuming 2 functional units for every operation
-  );
-integer no_of_free_enteries_res1;
-integer no_of_free_enteries_res2;
-always @(posedge clk) begin
-      if((run.main.instruction_queue_tail != run.main.instruction_queue_head) and  run.main.rob_space)//ensures instruction queue is not empty
+module decode();
+
+integer i ;
+integer k ;
+integer j ;
+always @(posedge run.clk)
+  begin
+    $display(($time-5)/10 ," cycle ");
+     $display( "----- DECODE STAGE ----- ");
+      if((run.instruction_queue_no_of_enteries != 0) && (run.rob_no_of_enteries < 8))//ensures instruction queue is not empty and rob is not full
          begin
-              case(run.main.instruction_queue[run.main.instruction_queue_head])
+              case(run.instruction_queue[run.instruction_queue_head][15:12])
                       4'b0000,4'b0001 :
                       begin
-                            // check which entry is free and put it in that entry
-                          if(run.main.res1_free_entry)
-                                     begin
-                                       run.main.rob_opcode_feild[run.main.tail] = run.main.instruction_queue[run.main.instruction_queue_head][15:12];// last 4 bits are opcode
-                                       run.main.dest_reg_feild[run.main.tail] = run.main.instruction_queue[run.main.instruction_queue_head][11:8];// destination register
-                                       run.main.v_des[run.main.tail] = 0;// making valid bit 0;
-                                           integer i = 0;
-                                           integer k ;
-                                           i
-
+                          // check which entry is free and put it in that entry
+                          if(run.res1_no_of_enteries < 4)
+                                    begin
+                                       // updating ROB
+                                       run.rob_opcode_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][15:12];// last 4 bits are opcode
+                                       run.rob_dest_reg_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][11:8];// destination register
+                                       run.v_des[run.tail] = 0;// making valid bit 0;
+                                       run.rob_no_of_enteries = run.rob_no_of_enteries + 1;
+                                       // register renaming and updating values
+                                       run.reg_rename[run.instruction_queue[run.instruction_queue_head][11:8]] = run.tail;// pointer to ROB
+                                       // making valid bit 0; It also symbolises that the register is renamed and the value has to be fetched from R
+                                       run.reg_valid[run.instruction_queue[run.instruction_queue_head][11:8]] = 1'b0; // / making valid bit 0; It also symbolises that the register is renamed and the value has to be fetched from taken corresponding to ROB
+                                       run.tail = run.tail + 2'b01;
+                                       // searching for free entry in reservation station
+                                       i = 0 ;
                                            while(i < 4)
                                                  begin
-                                                   if(run.main.res1_free_entry[i] == 1'b1)begin
+                                                   if(run.res1_free_entry[i] == 1'b1)begin
                                                    k = i ;
-                                                   run.main.res1_free_entry[k] = 0;
-                                                   run.main.no_of_free_enteries_res1 = run.main.no_of_free_enteries_res1 - 1;
+                                                   run.res1_free_entry[k] = 1'b0;
+                                                   run.res1_no_of_enteries = run.res1_no_of_enteries + 1;
                                                    i = 4 ;end
                                                    else
                                                     i = i+1;
-                                                  end
+                                            end
+                                           //updating reservation station
+                                           run.res1_opcode[k] = run.instruction_queue[run.instruction_queue_head][15:12];// opcode
+                                           run.res1_dest[k] = run.tail - 2'b01;// storing refrence in ROB
 
-                                           run.main.res1_opcode[k] == run.main.instruction_queue[run.main.instruction_queue_head][15:12]
-
-                                           run.main.reg_file[run.main.instruction_queue[run.main.instruction_queue_head][11:8]] = run.main.rob_dest_reg_value[run.main.tail];
-                                           run.main.reg_valid[run.main.instruction_queue[run.main.instruction_queue_head][11:8]] = 0;
-                                           // filling sr1
-                                           run.main.res1_sr1_value[k] = run.main.reg_file[run.main.instruction_queue_head][7:4]];
-                                           if(run.main.reg_valid[run.main.instruction_queue_head][7:4])// if valid
-                                                 run.main.res1_v1[k] = 1; // valid value
-
-                                           else
-                                                run.main.res1_v1[k] = 0; // Not Valid
-
-                                          run.main.res1_sr2_value[k] = run.main.reg_file[run.main.instruction_queue_head][3:0]];
-                                          if(run.main.reg_valid[run.main.instruction_queue_head][3:0])// if valid
-                                              run.main.res1_v2[k] = 1; // valid value
+                                           // sr1
+                                           if(run.reg_valid[run.instruction_queue[run.instruction_queue_head][7:4]])
+                                              begin
+                                                  run.res1_sr1_refrence[k] = 1'b0;// take value from ROB
+                                                  run.res1_sr1[k] = run.reg_rename[run.instruction_queue[run.instruction_queue_head][7:4]];// check refrence in rename register
+                                              end
                                           else
-                                              run.main.res1_v2[k] = 0; // Not Valid
-                                        // incrementing the tail in ROB
-                                          run.main.tail = run.main.tail + 2'b01;
-                                          if(run.main.head == run.main.tail)//4 = length of instruction_queue
-                                                 rob_space = 0;
+                                               begin
+                                                 run.res1_sr1_refrence[k] = 1'b1; // value in actual register
+                                                 run.res1_sr1[k] = run.instruction_queue[run.instruction_queue_head][7:4];//  register
+                                               end
 
-                                      end
-                                else
-                                  $display("Reservation Station 1 is Full");
-                            end
-                         4'b0010 , 4'b0011 :
-                             begin
-                               if(run.main.no_of_free_enteries_res2)
-                                          begin
-                                            run.main.rob_opcode_feild[run.main.tail] = run.main.instruction_queue[run.main.instruction_queue_head][15:12];// last 4 bits are opcode
-                                            run.main.dest_reg_feild[run.main.tail] = run.main.instruction_queue[run.main.instruction_queue_head][11:8];// destination register
-                                            run.main.v_des[run.main.tail] = 0;// making valid bit 0;
-                                                integer i = 0;
-                                                integer k ;
-                                                while(i < 4)
-                                                      begin
-                                                        if(run.main.res2_free_entry[i] == 1'b1)begin
-                                                        k = i ;
-                                                        run.main.res1_free_entry[k] = 0;
-                                                        run.main.no_of_free_enteries_res2 = run.main.no_of_free_enteries_res2 - 1;
-                                                        i = 4 ;end
-                                                        else
-                                                         i = i+1;
-                                                       end
-                                                run.main.res2_opcode[k] == run.main.instruction_queue[run.main.instruction_queue_head][15:12]
+                                            //sr2
+                                            if(run.reg_valid[run.instruction_queue[run.instruction_queue_head][3:0]])
+                                                 begin
+                                                     run.res1_sr2_refrence[k] = 1'b0; // take value from ROB // refrence to ROB
+                                                     run.res1_sr2[k] = run.reg_rename[run.instruction_queue[run.instruction_queue_head][3:0]];// check refrence in rename register
+                                                 end
+                                            else
+                                                  begin
+                                                      run.res1_sr2_refrence[k] = 1'b1; // value in actual register // refrence to regiseterfile;
+                                                      run.res1_sr2[k] = run.instruction_queue[run.instruction_queue_head[3:0]];//  register
+                                                  end
+                                         $display(" Decoded : %h , Location : RS1",run.instruction_queue[run.instruction_queue_head]);
+                                        // incrementing head pointer in instruction_queue and dercrementing no. of enteries in instruction_queue
+                                         run.instruction_queue_head = run.instruction_queue_head + 2'b01;
+                                         run.instruction_queue_no_of_enteries= run.instruction_queue_no_of_enteries - 1;
 
-                                                run.main.reg_file[run.main.instruction_queue[run.main.instruction_queue_head][11:8]] = run.main.rob_dest_reg_value[run.main.tail];
-                                                run.main.reg_valid[run.main.instruction_queue[run.main.instruction_queue_head][11:8]] = 0;
-                                                // filling sr1
-                                                run.main.res2_sr1_value[k] = run.main.reg_file[run.main.instruction_queue_head][7:4]];
-                                                if(run.main.reg_valid[run.main.instruction_queue_head][7:4])// if valid
-                                                      run.main.res2_v1[k] = 1; // valid value
+                              end
+                          else
+                                $display("Stall , RS1 : Full");
+                        end
+                       4'b0010,4'b0011 :
+                       begin
+                           // check which entry is free and put it in that entry
+                           if(run.res1_no_of_enteries < 4)
+                                     begin
+                                        // updating ROB
+                                        run.rob_opcode_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][15:12];// last 4 bits are opcode
+                                        run.rob_dest_reg_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][11:8];// destination register
+                                        run.v_des[run.tail] = 0;// making valid bit 0;
+                                        run.rob_no_of_enteries = run.rob_no_of_enteries + 1;
+                                        // register renaming and updating values
+                                        run.reg_rename[run.instruction_queue[run.instruction_queue_head][11:8]] = run.tail;// pointer to ROB
+                                        // making valid bit 0; It also symbolises that the register is renamed and the value has to be fetched from R
+                                        run.reg_valid[run.instruction_queue[run.instruction_queue_head][11:8]] = 1'b0; // / making valid bit 0; It also symbolises that the register is renamed and the value has to be fetched from taken corresponding to ROB
+                                        run.tail = run.tail + 2'b01;
+                                        // searching for free entry in reservation station
 
-                                                else
-                                                     run.main.res2_v1[k] = 0; // Not Valid
+                                        i = 0 ;
+                                            while(i < 4)
+                                                  begin
+                                                    if(run.res2_free_entry[i] == 1'b1)begin
+                                                    k = i ;
+                                                    run.res2_free_entry[k] = 1'b0;
+                                                    run.res2_no_of_enteries = run.res2_no_of_enteries + 1;
+                                                    i = 4 ;end
+                                                    else
+                                                     i = i+1;
+                                             end
+                                            //updating reservation station
+                                            run.res2_opcode[k] = run.instruction_queue[run.instruction_queue_head][15:12];// opcode
+                                            run.res2_dest[k] = run.tail - 2'b01;
 
-                                               run.main.res2_sr2_value[k] = run.main.reg_file[run.main.instruction_queue_head][3:0]];
-                                               if(run.main.reg_valid[run.main.instruction_queue_head][3:0])// if valid
-                                                     run.main.res2_v2[k] = 1; // valid value
-                                               else
-                                                     run.main.res2_v2[k] = 0; // Not Valid
-                                              run.main.tail = run.main.tail + 3'b001;
-                                              if(run.main.head == run.main.tail)// ROB is full stop further fetching of instructions
-                                                     rob_space = 0;
-                                          end
-                              else
-                                  $display("Reservation Station 2 is Full");
-                          end
+                                            // sr1
+                                            if(run.reg_valid[run.instruction_queue[run.instruction_queue_head][7:4]])
+                                               begin
+                                                   run.res2_sr1_refrence[k] = 1'b0;// take value from ROB
+                                                   run.res2_sr1[k] = run.reg_rename[run.instruction_queue[run.instruction_queue_head][7:4]];// check refrence in rename register
+                                               end
+                                           else
+                                                begin
+                                                  run.res2_sr1_refrence[k] = 1'b1; // value in actual register
+                                                  run.res2_sr1[k] = run.instruction_queue[run.instruction_queue_head][7:4];//  register
+                                                end
 
-
-
-
-                                          // Filling the entry in R
-                     //run.main.rob_dest_reg_value = 8'bx;
-                    // putting the values in reservation station;
-
+                                             //sr2
+                                             if(run.reg_valid[run.instruction_queue[run.instruction_queue_head][3:0]])
+                                                  begin
+                                                      run.res2_sr2_refrence[k] = 1'b0; // take value from ROB // refrence to ROB
+                                                      run.res2_sr2[k] = run.reg_rename[run.instruction_queue[run.instruction_queue_head][3:0]];// check refrence in rename register
+                                                  end
+                                             else
+                                                   begin
+                                                       run.res2_sr2_refrence[k] = 1'b1; // value in actual register // refrence to regiseterfile;
+                                                       run.res2_sr2[k] = run.instruction_queue[run.instruction_queue_head[3:0]];//  register
+                                                   end
+                                          $display(" Decoded : %h , Location : RS2",run.instruction_queue[run.instruction_queue_head]);
+                                         // incrementing head pointer in instruction_queue and dercrementing no. of enteries in instruction_queue
+                                          run.instruction_queue_head = run.instruction_queue_head + 2'b01;
+                                          run.instruction_queue_no_of_enteries= run.instruction_queue_no_of_enteries - 1;
+                               end
+                           else
+                                 $display("Stall , RS2 : Full");
+                         end
+                          default: $display("Unvalid Opcode %h",run.instruction_queue[run.instruction_queue_head][15:12]);
+                      endcase
+                  end
+          else
+             begin
+                if(run.instruction_queue_no_of_enteries == 0)
+                      $display("Stall IQ : Empty");
                else
-            $display("ROB is Full or Instruction _ queue is empty")
-
-// putting the values in reservation station;
+                 $display("Stall , ROB : Full");
+             end
 end
 endmodule
-// this implements tomasulos renaming policy
-
-/* this module puts the fetched instruction into reservation station
-if reservation station has vacancy */
-module issue( input [7:0] mem_address ,
-              output reg [31:0]instruction[10:0],
-  )
-
-  )
