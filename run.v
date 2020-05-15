@@ -18,7 +18,7 @@
           //Multiply 6 cycles
           //Divide 8 cycles
           //load and store 4 cycles
-
+// Let us assume we have 3 functional units 2 for add and subract; and 1 for divide and Multiply
 module run;
 
 //Initializing memory
@@ -59,36 +59,48 @@ integer rob_no_of_enteries;
 // Reservation station for add and sub = res1
        // Size of res = 4 instruction;
 integer res1_no_of_enteries;
+reg [15:0] res1_instructions[0:3];
 reg res1_free_entry[0:3];// gives us the list of free enteries; 1 = free ,0 = busy
 reg [3:0]res1_opcode[0:3];
 
 reg res1_sr1_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = register file . 0 = refrence
-reg [3:0]res1_sr1[0:3];//This stores refrence either to ROB or register file;
+reg [7:0]res1_sr1[0:3];//This stores refrence either to ROB or source
 
 reg res1_sr2_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = register file . 0 = refrence
-reg [3:0]res1_sr2[0:3];//This stores refrence either to ROB or register file;
+reg [7:0]res1_sr2[0:3];//This stores refrence either to ROB or values;
 
 reg [2:0]res1_dest[0:3];// This stores refrence to ROB
-
-
-
+reg res1_ready[0:3];// this indicates whic enrty is ready to  executed
+reg res1_issued[0:3];// this indicates whether the entry is issued to execution stage or not;
 //Reservation station for mul and divide
     // Size of res2 = 4 instruction;
 
 integer res2_no_of_enteries;
+reg [15:0]res2_instructions[0:3];
 reg res2_free_entry[0:3];// gives us the list of free enteries; 1 = free ,0 = busy
 reg [3:0]res2_opcode[0:3];
 
 reg res2_sr1_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = register file . 0 = refrence to ROB
-reg [3:0]res2_sr1[0:3];//This stores refrence either to ROB or register file;
+reg [7:0]res2_sr1[0:3];//This stores refrence either to ROB or value;
 
 reg res2_sr2_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = refrence register file . 0 = refrence ROB
-reg [3:0]res2_sr2[0:3];//This stores refrence either to ROB or register file;
+reg [7:0]res2_sr2[0:3];//This stores refrence either to ROB or value;
 
 reg [2:0]res2_dest[0:3];// This stores refrence to ROB
-
-
+reg res2_ready[0:3];// this indicates which entry is ready to  executed
+reg res2_issued[0:3];// this indicates whether the entry is issued to execution stage or not;
 // LSQ
+//
+//Excecution
+reg res1_execution_unit[0:1]; // this indicates whether res1 exe. units are busy or free. 1 = busy , 0 = free
+reg res2_execution_unit; // this indicates whether res2 exe. units are busy or free.
+reg[7:0] res1_v0; reg res1_v0_received;integer i0;// this stores which entry of reservation station rs1 was being used.
+reg[7:0] res1_v1; reg res1_v1_received;integer i1;// this stores which entry of reservation station rs1 was being used.
+reg[7:0] res2_v;  reg res2_v_received;integer i2;// this stores which entry of reservation station rs2 was being used.
+
+reg [15:0]res1_i0;// store instruction of f1 ;
+reg [15:0]res1_i1;// store instruction f2;
+reg [15:0]res2_i;// store instruction f3;
 //
 reg clk;
 reg [3:0]pc ;
@@ -96,6 +108,7 @@ reg [3:0]pc ;
 issue i();
 integer m ;
 integer n ;
+integer p;
 initial begin
   clk = 1'b0;
   pc = 4'b0000;
@@ -112,10 +125,10 @@ initial begin
   rob_no_of_enteries = 0;
   m = 0;
   while(m < 8) begin
-     commit[m] = 1'b0 ; // this while loops just initializes commit array to 0;
-     v_des[m] = 1'b0;
-     reg_valid[2*m+1] = 1'b1;
-     reg_valid[2*m] = 1'b1;
+    commit[m] = 1'b0 ; // this while loops just initializes commit array to 0;
+    v_des[m] = 1'b0;
+    reg_valid[2*m+1] = 1'b1;
+    reg_valid[2*m] = 1'b1;
      m = m + 1;
   end
   // Initializing reservation station
@@ -129,13 +142,23 @@ initial begin
     res1_sr2_refrence[n] = 1'b0;
     res2_sr1_refrence[n] = 1'b0;
     res2_sr2_refrence[n] = 1'b0;
+    res1_ready[n] = 1'b0;
+    res2_ready[n] = 1'b0;
+    res1_issued[n] = 1'b0;
+    res2_issued[n] = 1'b0;
     n = n + 1;
   end
+  // execution_unit
+   res1_execution_unit[0] = 1'b0;
+   res1_execution_unit[1] = 1'b0;
+   res2_execution_unit = 1'b0;
+   res1_v0_received = 1'b0;
+   res1_v1_received = 1'b0;
   $readmemh("instruction_memory.dat",instruction_memory);
 end
 always begin
-   #5clk =~clk ;
+   #10clk =~clk ;
 end
 
-initial #160 $finish ;
+initial #400 $finish ;
 endmodule
