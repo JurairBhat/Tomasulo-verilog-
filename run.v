@@ -53,6 +53,7 @@ reg commit[0:7];// indicates whether the particular entry has committed or not.
 reg [2:0]head;// ROB head
 reg [2:0]tail;// ROB tail// this points to first empty location
 reg rob_full; // this is 1 when ROB is full and 0 when it has space;
+reg [15:0]rob_instruction_feild[0:7];
 integer rob_no_of_enteries;
 
 
@@ -94,9 +95,9 @@ reg res2_issued[0:3];// this indicates whether the entry is issued to execution 
 //Excecution
 reg res1_execution_unit[0:1]; // this indicates whether res1 exe. units are busy or free. 1 = busy , 0 = free
 reg res2_execution_unit; // this indicates whether res2 exe. units are busy or free.
-reg[7:0] res1_v0; reg res1_v0_received;integer i0;// this stores which entry of reservation station rs1 was being used.
-reg[7:0] res1_v1; reg res1_v1_received;integer i1;// this stores which entry of reservation station rs1 was being used.
-reg[7:0] res2_v;  reg res2_v_received;integer i2;// this stores which entry of reservation station rs2 was being used.
+reg[7:0] res1_v0; reg res1_v0_received;integer i0;reg res1_v0_written;// this stores which entry of reservation station rs1 was being used.
+reg[7:0] res1_v1; reg res1_v1_received;integer i1;reg res1_v1_written;// this stores which entry of reservation station rs1 was being used.
+reg[7:0] res2_v;  reg res2_v_received;integer i2;reg res2_v_written;// this stores which entry of reservation station rs2 was being used.
 
 reg [15:0]res1_i0;// store instruction of f1 ;
 reg [15:0]res1_i1;// store instruction f2;
@@ -154,10 +155,15 @@ initial begin
    res2_execution_unit = 1'b0;
    res1_v0_received = 1'b0;
    res1_v1_received = 1'b0;
+   res2_v_received = 1'b0;
+
+   res1_v0_written = 1'b0;
+   res1_v1_written = 1'b0;
+   res2_v_written = 1'b0;
   $readmemh("instruction_memory.dat",instruction_memory);
 end
 always begin
-   #10clk =~clk ;
+   #10 clk =~clk ;
 end
 
 initial #400 $finish ;

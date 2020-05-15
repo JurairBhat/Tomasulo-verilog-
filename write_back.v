@@ -4,20 +4,26 @@ integer k;// for res1 2nd
 integer j;
 
 always @(posedge run.clk)
-  begin
-    if(run.res1_v0_received)// if value is received
+   begin
+
+    #2
+    $display("---WRITE BACK STAGE---  ",);
+    if(run.res1_v0_written == 1'b1)// if value is received
     begin
+
+        $display($time,"Instruction : %h , Written Back",run.res1_i0);
         // update all places where that value is being used
         // first ROB value
          run.rob_dest_reg_value[run.res1_dest[run.i0]] = run.res1_v0 ;
-
+         //run.commit[run.res1_dest[run.i0]] = 1'b0;
+         run.v_des[run.res1_dest[run.i0]] = 1'b1;// ready to retire;
          // make that entry free in res1 free;
          run.res1_free_entry[run.i0] = 1'b1;
          run.res1_no_of_enteries = run.res1_no_of_enteries - 1;
 
          //make execution unit free
          run.res1_execution_unit[0] = 1'b0; // execution unit is free
-         run.res1_v0_received = 1'b0 ;
+         run.res1_v0_written = 1'b0 ;
 
          // update value to all places where ever this value is needed;
          // check in reservation station where ever the value is needed update that
@@ -47,19 +53,21 @@ always @(posedge run.clk)
 
 always @(posedge run.clk)
     begin
-      if(run.res1_v1_received)// if value is received
+      if(run.res1_v1_written == 1'b1)// if value is received
       begin
+          #3 $display($time ," Instruction : %h , Written Back",run.res1_i1);
           // update all places where that value is being used
           // first ROB value
            run.rob_dest_reg_value[run.res1_dest[run.i1]] = run.res1_v1 ;
-
+           run.commit[run.res1_dest[run.i1]] = 1'b0;
+           run.v_des[run.res1_dest[run.i1]] = 1'b1;// ready to retire;
            // make that entry free in res1 free;
            run.res1_free_entry[run.i1] = 1'b1;
            run.res1_no_of_enteries = run.res1_no_of_enteries - 1;
 
            //make execution unit free
            run.res1_execution_unit[0] = 1'b0; // execution unit is free
-           run.res1_v1_received = 1'b0 ;
+           run.res1_v1_written = 1'b0 ;
 
            // update value to all places where ever this value is needed;
            // check in reservation station where ever the value is needed update that
@@ -89,11 +97,15 @@ always @(posedge run.clk)
 
     always @(posedge run.clk)
       begin
-        if(run.res2_v_received)// if value is received
+
+        if(run.res2_v_written == 1'b1)// if value is received
         begin
+             #4 $display($time ,"Instruction : %h , Written Back",run.res2_i);
             // update all places where that value is being used
-            // first ROB value
-             run.rob_dest_reg_value[run.res2_dest[run.i2]] = run.res2_v ;
+            // update ROB value
+            run.commit[run.res2_dest[run.i2]] = 1'b0;
+            run.v_des[run.res2_dest[run.i2]] = 1'b1;// ready to retire;
+            run.rob_dest_reg_value[run.res2_dest[run.i2]] = run.res2_v ;
 
              // make that entry free in res1 free;
              run.res2_free_entry[run.i2] = 1'b1;
@@ -101,7 +113,7 @@ always @(posedge run.clk)
 
              //make execution unit free
              run.res2_execution_unit = 1'b0; // execution unit is free
-             run.res2_v_received = 1'b0 ;
+             run.res2_v_written = 1'b0 ;
 
              // update value to all places where ever this value is needed;
              // check in reservation station where ever the value is needed update that

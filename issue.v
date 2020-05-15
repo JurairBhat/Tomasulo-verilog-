@@ -3,6 +3,7 @@ module issue();
    decode d();
    execute e();
    write_back wb();
+   commit c();
 endmodule
 
 /* This module gets the instruction from the memory
@@ -11,7 +12,7 @@ module fetch();
 //reg [3:0]previous_pc,current_pc;// this will account for stall  condition
 always@(posedge run.clk)
 begin
-  #4
+  #8
   $display("--- FETCH STAGE ---  ",);
   if(!run.iq_f)
     begin// it only write in intruc      vguhgution queue if iq_f = 0;
@@ -37,8 +38,10 @@ integer k ;
 integer j ;
 always @(posedge run.clk)
   begin
-    #3
+    #7
      $display( "--- DECODE STAGE --- ");
+     $display("ROB HEAD : %h",run.head);
+     $display("ROB TAIL : %h",run.tail);
       if((run.instruction_queue_no_of_enteries != 0) && (run.rob_no_of_enteries < 8))//ensures instruction queue is not empty and rob is not full
          begin
               case(run.instruction_queue[run.instruction_queue_head][15:12])
@@ -49,10 +52,12 @@ always @(posedge run.clk)
                           if(run.res1_no_of_enteries < 4)
                                     begin
                                        // updating ROB
+                                       run.rob_instruction_feild[run.tail] = run.instruction_queue[run.instruction_queue_head];
                                        run.rob_opcode_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][15:12];// last 4 bits are opcode
                                        run.rob_dest_reg_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][11:8];// destination register
-                                       run.v_des[run.tail] = 0;// making valid bit 0;
+                                       run.v_des[run.tail] = 1'b0;// making valid bit 0;
                                        run.rob_no_of_enteries = run.rob_no_of_enteries + 1;
+                                       run.commit[run.tail] = 1'b0;
 
                                        // searching for free entry in reservation station
                                        i = 0 ;
@@ -103,7 +108,7 @@ always @(posedge run.clk)
                                          if((run.res1_sr1_refrence[k] == 1'b1 && run.res1_sr2_refrence[k] == 1'b1) && (run.res1_free_entry[k] == 1'b0)) // if both operands are available make it ready
                                              begin
                                                run.res1_ready[k] = 1'b1;
-                                               $display("This entry is ready");
+                                               //$display("This entry is ready");
                                              end
                                           else
                                              run.res1_ready[k] = 1'b0;
@@ -124,11 +129,12 @@ always @(posedge run.clk)
                            if(run.res1_no_of_enteries < 4)
                                      begin
                                         // updating ROB
+                                        run.rob_instruction_feild[run.tail] = run.instruction_queue[run.instruction_queue_head];
                                         run.rob_opcode_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][15:12];// last 4 bits are opcode
                                         run.rob_dest_reg_feild[run.tail] = run.instruction_queue[run.instruction_queue_head][11:8];// destination register
-                                        run.v_des[run.tail] = 0;// making valid bit 0;
+                                        run.v_des[run.tail] = 1'b0;// making valid bit 0;
                                         run.rob_no_of_enteries = run.rob_no_of_enteries + 1;
-
+                                        run.commit[run.tail] = 1'b0;
                                         // searching for free entry in reservation station
 
                                         i = 0 ;
@@ -157,7 +163,7 @@ always @(posedge run.clk)
                                            else
                                                 begin
                                                   run.res2_sr1_refrence[k] = 1'b1; // value in actual register
-                                                  $display("sr1 fine");
+                                                  //$display("sr1 fine");
                                                   run.res2_sr1[k] = run.reg_file[run.instruction_queue[run.instruction_queue_head][7:4]];//  register
                                                 end
 
@@ -170,7 +176,7 @@ always @(posedge run.clk)
                                              else
                                                    begin
                                                        run.res2_sr2_refrence[k] = 1'b1; // value in actual register // refrence to regiseterfile;
-                                                       $display("sr2 fine");
+                                                       //$display("sr2 fine");
                                                        run.res2_sr2[k] = run.reg_file[run.instruction_queue[run.instruction_queue_head][3:0]];//  register
                                                    end
                                             // register renaming and updating values
@@ -182,7 +188,7 @@ always @(posedge run.clk)
                                              if((run.res2_sr1_refrence[k] == 1'b1 && run.res2_sr2_refrence[k] == 1'b1)&& (run.res2_free_entry[k] == 1'b0)) // if both operands are available make it ready
                                                   begin
                                                     run.res2_ready[k] = 1'b1;
-                                                    $display("This entry is ready");
+                                                    //$display("This entry is ready");
                                                   end
                                              else
                                                   run.res2_ready[k] = 1'b0;
@@ -192,6 +198,7 @@ always @(posedge run.clk)
                                          // incrementing head pointer in instruction_queue and dercrementing no. of enteries in instruction_queue
                                           run.instruction_queue_head = run.instruction_queue_head + 2'b01;
                                           run.instruction_queue_no_of_enteries = run.instruction_queue_no_of_enteries - 1;
+
                                end
                            else
                                  $display("Stall , RS2 : Full");
@@ -202,9 +209,10 @@ always @(posedge run.clk)
           else
              begin
                 if(run.instruction_queue_no_of_enteries == 0)
-                      $display("Stall IQ : Empty");
+                      $display("Stall , IQ : Empty");
                else
                  $display("Stall , ROB : Full");
              end
+
 end
 endmodule
