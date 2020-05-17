@@ -131,7 +131,7 @@ always @(posedge run.clk)
            run.res1_no_of_enteries = run.res1_no_of_enteries - 1;
 
            //make execution unit free
-           run.res1_execution_unit[0] = 1'b0; // execution unit is free
+           run.res1_execution_unit[1] = 1'b0; // execution unit is free
            run.res1_v1_written = 1'b0 ;
 
            // update value to all places where ever this value is needed;

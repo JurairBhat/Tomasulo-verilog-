@@ -14,9 +14,9 @@
 // instruction queue = 4 instruction;
 // data memory = 0000 ------- 1111
 // latencies :
-          //Add and subtract 2 cycles
-          //Multiply 6 cycles
-          //Divide 8 cycles
+          //Add and subtract 3 cycles
+          //Multiply 5 cycles
+          //Divide 5 cycles
           //load and store 4 cycles
 // Let us assume we have 3 functional units 2 for add and subract; and 1 for divide and Multiply
 module run;
