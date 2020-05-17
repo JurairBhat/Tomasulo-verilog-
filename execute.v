@@ -19,7 +19,8 @@ module execute();
 
                     run.res1_v0 <= #30 run.res1_sr1[i] - run.res1_sr2[i];
                     run.res1_v0_received <= #30 1'b1;
-                    $display("         Intruction : %h , Executing in F0\n",run.res1_i0);
+                    $display("         Intruction : %h , Executing",run.res1_i0);
+                    $display("         Functional Unit : F0");
                     $display("         Subtracting : %h - %h\n",run.res1_sr1[i],run.res1_sr2[i]);
                 end
 
@@ -27,8 +28,8 @@ module execute();
                 begin
                     run.res1_v0 <= #30 run.res1_sr1[i] + run.res1_sr2[i];
                     run.res1_v0_received <= #30 1'b1;
-                    $display("        Intruction : %h , Executing\n",run.res1_i0);
-                    $display("        Functional Unit : F0\n");
+                    $display("        Intruction : %h , Executing",run.res1_i0);
+                    $display("        Functional Unit : F0");
                     $display("        Adding : %h  +  %h\n",run.res1_sr1[i],run.res1_sr2[i]);
                 end
                 run.res1_issued[i] = 1'b1;// this entry is issued , no need to issue that again;
@@ -45,8 +46,8 @@ module execute();
              begin
                  run.res1_v1 <= #30 run.res1_sr1[i] - run.res1_sr2[i];
                  run.res1_v1_received <= #30 1'b1 ;
-                 $display("        Intruction : %h , Executing in F1\n",run.res1_i1);
-                 $display("        Functional Unit : F1\n");
+                 $display("        Intruction : %h , Executing in F1",run.res1_i1);
+                 $display("        Functional Unit : F1");
                  $display("        Subtracting : %h + %h\n",run.res1_sr1[i],run.res1_sr2[i]);
 
              end
@@ -54,8 +55,8 @@ module execute();
              begin
                  run.res1_v1 <= #30 run.res1_sr1[i] + run.res1_sr2[i];
                  run.res1_v1_received <= #30 1'b1;
-                 $display("        Intruction : %h , Executing in F1\n",run.res1_i1);
-                 $display("        Functional Unit : F1\n");
+                 $display("        Intruction : %h , Executing in F1",run.res1_i1);
+                 $display("        Functional Unit : F1");
                  $display("        Adding : %h + %h\n",run.res1_sr1[i],run.res1_sr2[i]);
              end
              run.res1_issued[i] = 1'b1;
@@ -67,11 +68,11 @@ module execute();
               i = i + 1;
       end
 
-      $display("        F0-Busy : %h\n",run.res1_execution_unit[0] );
+      $display("        F0-Busy : %h",run.res1_execution_unit[0] );
       if(run.res1_execution_unit[0])
       $display("        Executing : %h\n ",run.res1_i0);
 
-      $display("        F1-Busy : %h\n",run.res1_execution_unit[1] );
+      $display("        F1-Busy : %h",run.res1_execution_unit[1] );
       if(run.res1_execution_unit[1])
       $display("        Executing : %h\n ",run.res1_i1);
 
@@ -79,7 +80,7 @@ module execute();
           begin
           run.res1_v0_written = 1'b1;
           $display("        Instruction : %h , Execution Complete\n",run.res1_i0);
-          $display("        Functional Unit: F0\n");
+          $display("        Functional Unit: F0");
           $display("        Result : %h \n",run.res1_v0);
           run.res1_v0_received = 1'b0;
           end
@@ -87,7 +88,7 @@ module execute();
          begin
           run.res1_v1_written = 1'b1;
           $display("        Instruction : %h , Execution Complete\n",run.res1_i1);
-          $display("        Functional Unit: F1\n");
+          $display("        Functional Unit: F1");
           $display("        Result : %h \n",run.res1_v1);
           run.res1_v1_received = 1'b0;
         end
@@ -108,8 +109,8 @@ module execute();
                      begin
                       run.res2_v <= #70 run.res2_sr1[k] * run.res2_sr2[k];
                       run.res2_v_received <= #70 1'b1;
-                      $display("        Intruction : %h , Executing\n",run.res2_i);
-                      $display("        Functional Unit : F3\n");
+                      $display("        Intruction : %h , Executing",run.res2_i);
+                      $display("        Functional Unit : F3");
                       $display("        Multiplying : %h * %h\n",run.res2_sr1[i],run.res2_sr2[i]);
                      end
 
@@ -117,8 +118,8 @@ module execute();
                       begin
                       run.res2_v <= #70 run.res2_sr1[k] / run.res2_sr2[k];
                       run.res2_v_received <= #70 1'b1;
-                      $display("        Intruction : %h , Executing in E3\n",run.res2_i);
-                      $display("        Functional Unit : F3\n");
+                      $display("        Intruction : %h , Executing",run.res2_i);
+                      $display("        Functional Unit : F3");
                       $display("        Dividing : %h / %h\n",run.res2_sr2[i],run.res2_sr2[i]);
                       end
                   run.res2_issued[k] = 1'b1;
@@ -129,14 +130,14 @@ module execute();
                  k = k + 1 ;
 
         end
-        $display("        F3-Busy : %h\n",run.res2_execution_unit);
+        $display("        F3-Busy : %h",run.res2_execution_unit);
         if(run.res2_execution_unit)
         $display("        Executing : %h\n",run.res2_i);
         if(run.res2_v_received == 1'b1)
         begin
             run.res2_v_written = 1'b1;
-            $display("        Instruction : %h , Execution Complete\n",run.res2_i);
-            $display("        Functional Unit: F3\n");
+            $display("        Instruction : %h , Execution Complete",run.res2_i);
+            $display("        Functional Unit: F3");
             $display("        Result : %h \n",run.res2_v);
             run.res2_v_received = 1'b0;
         end
