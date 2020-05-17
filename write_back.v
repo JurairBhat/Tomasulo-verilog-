@@ -7,11 +7,11 @@ always @(posedge run.clk)
    begin
 
     #2
-    $display("---WRITE BACK STAGE---  ",);
+    $display("WRITE BACK STAGE : \n",);
     if(run.res1_v0_written == 1'b1)// if value is received
     begin
 
-        $display($time,"Instruction : %h , Written Back",run.res1_i0);
+        $display("        Instruction : %h , Written Back\n",run.res1_i0);
         // update all places where that value is being used
         // first ROB value
          run.rob_dest_reg_value[run.res1_dest[run.i0]] = run.res1_v0 ;
@@ -30,32 +30,62 @@ always @(posedge run.clk)
          i = 0 ;
          while(i < 4)
          begin
-           // update sr1
-           if(!run.res1_sr1_refrence[i] &&  (run.res1_sr1[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
+           // update sr1 in rs1;
+           if(!run.res1_sr1_refrence[i] &&  (run.res1_sr1_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
            begin
+
+             //$display("Sr1 getting update");
              run.res1_sr1[i] = run.res1_v0;
              run.res1_sr1_refrence[i] = 1'b1;
-           end
-           // update sr2
-           if(!run.res1_sr2_refrence[i] &&  (run.res1_sr2[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
-           begin
+            end
+           // update sr2 in rs1;
+            if(!run.res1_sr2_refrence[i] &&  (run.res1_sr2_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
+            begin
+             //$display("Sr2 getting update");
              run.res1_sr2[i] = run.res1_v0;
-             run.res1_sr1_refrence[i] = 1'b1;
-           end
+             run.res1_sr2_refrence[i] = 1'b1;
+            end
           // check if both sources are ready so that it is ready to get issued
-          if(run.res1_sr2_refrence[i] && run.res1_sr2_refrence[i])
-                 run.res1_ready[i] = 1'b1;
-          i = i + 1 ;
-         end
+            if(run.res1_sr1_refrence[i] && run.res1_sr2_refrence[i])
+            begin
+             run.res1_ready[i] = 1'b1;
+             //$display("%h , Made Ready",run.res1_instructions[i]);
+            end
 
-    end
+
+            // update sr1 in rs2;
+            if(!run.res2_sr1_refrence[i] &&  (run.res2_sr1_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
+            begin
+
+              //$display("Sr1 getting update");
+              run.res2_sr1[i] = run.res1_v0;
+              run.res2_sr1_refrence[i] = 1'b1;
+             end
+            // update sr2 in rs2;
+             if(!run.res2_sr2_refrence[i] &&  (run.res2_sr2_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
+             begin
+              //$display("Sr2 getting update");
+              run.res2_sr2[i] = run.res1_v0;
+              run.res2_sr2_refrence[i] = 1'b1;
+             end
+           // check if both sources are ready so that it is ready to get issued
+             if(run.res2_sr1_refrence[i] && run.res2_sr2_refrence[i])
+             begin
+              run.res2_ready[i] = 1'b1;
+              //$display("%h , Made Ready",run.res1_instructions[i]);
+             end
+            //
+           i = i + 1 ;
+          end
+      end
   end
 
 always @(posedge run.clk)
     begin
+      #3
       if(run.res1_v1_written == 1'b1)// if value is received
       begin
-          #3 $display($time ," Instruction : %h , Written Back",run.res1_i1);
+           $display("        Instruction : %h , Written Back\n",run.res1_i1);
           // update all places where that value is being used
           // first ROB value
            run.rob_dest_reg_value[run.res1_dest[run.i1]] = run.res1_v1 ;
@@ -74,21 +104,39 @@ always @(posedge run.clk)
            k = 0 ;
            while(k < 4)
            begin
-             // update sr1
-             if(!run.res1_sr1_refrence[k] &&  (run.res1_sr1[k] == run.res1_dest[run.i1]))// value to supposed to be taken from ROB
+             // update sr1 in rs1
+             if(!run.res1_sr1_refrence[k] &&  (run.res1_sr1_ref_value[k] == run.res1_dest[run.i1]))// value to supposed to be taken from ROB
              begin
                run.res1_sr1[k] = run.res1_v1;
                run.res1_sr1_refrence[k] = 1'b1;
              end
-             // update sr2
-             if(!run.res1_sr2_refrence[k] &&  (run.res1_sr2[k] == run.res1_dest[run.i1]))// value to supposed to be taken from ROB
+             // update sr2 in rs2
+             if(!run.res1_sr2_refrence[k] &&  (run.res1_sr2_ref_value[k] == run.res1_dest[run.i1]))// value to supposed to be taken from ROB
              begin
                run.res1_sr2[k] = run.res1_v1;
                run.res1_sr2_refrence[k] = 1'b1;
              end
             // check if both sources are ready so that it is ready to get issued
-            if(run.res1_sr2_refrence[k] && run.res1_sr2_refrence[k])
+            if(run.res1_sr1_refrence[k] && run.res1_sr2_refrence[k])
                    run.res1_ready[k] = 1'b1;
+
+
+            // update sr1 in rs2
+            if(!run.res2_sr1_refrence[k] &&  (run.res2_sr1_ref_value[k] == run.res1_dest[run.i1]))// value to supposed to be taken from ROB
+                begin
+                   run.res2_sr1[k] = run.res1_v1;
+                   run.res2_sr1_refrence[k] = 1'b1;
+                 end
+            // update sr2
+              if(!run.res2_sr2_refrence[k] &&  (run.res2_sr2_ref_value[k] == run.res1_dest[run.i1]))// value to supposed to be taken from ROB
+                   begin
+                     run.res2_sr2[k] = run.res1_v1;
+                     run.res2_sr2_refrence[k] = 1'b1;
+                   end
+               // check if both sources are ready so that it is ready to get issued
+             if(run.res2_sr1_refrence[k] && run.res2_sr2_refrence[k])
+                  run.res2_ready[k] = 1'b1;
+
             k = k + 1;
            end
 
@@ -97,10 +145,10 @@ always @(posedge run.clk)
 
     always @(posedge run.clk)
       begin
-
+        #4
         if(run.res2_v_written == 1'b1)// if value is received
         begin
-             #4 $display($time ,"Instruction : %h , Written Back",run.res2_i);
+             $display("        Instruction : %h , Written Back\n",run.res2_i);
             // update all places where that value is being used
             // update ROB value
             run.commit[run.res2_dest[run.i2]] = 1'b0;
@@ -120,21 +168,37 @@ always @(posedge run.clk)
              j = 0 ;
              while(j < 4)
              begin
-               // update sr1
-               if(!run.res2_sr1_refrence[j] &&  (run.res2_sr1[j] == run.res2_dest[run.i2]))// value to supposed to be taken from ROB
+               // update sr1 in rs2
+               if(!run.res2_sr1_refrence[j] &&  (run.res2_sr1_ref_value[j] == run.res2_dest[run.i2]))// value to supposed to be taken from ROB
                begin
                  run.res2_sr1[j] = run.res2_v;
                  run.res2_sr1_refrence[j] = 1'b1;
                end
-               // update sr2
-               if(!run.res2_sr2_refrence[j] &&  (run.res2_sr2[j] == run.res2_dest[run.i2]))// value to supposed to be taken from ROB
+               // update sr2 in rs2
+               if(!run.res2_sr2_refrence[j] &&  (run.res2_sr2_ref_value[j] == run.res2_dest[run.i2]))// value to supposed to be taken from ROB
                begin
                  run.res2_sr2[j] = run.res2_v;
                  run.res2_sr2_refrence[j] = 1'b1;
                end
               // check if both sources are ready so that it is ready to get issued
-              if(run.res2_sr2_refrence[j] && run.res2_sr2_refrence[j])
+              if(run.res2_sr1_refrence[j] && run.res2_sr2_refrence[j])
                      run.res2_ready[j] = 1'b1;
+
+              // update sr1 in rs1
+              if(!run.res1_sr1_refrence[j] &&  (run.res1_sr1_ref_value[j] == run.res2_dest[run.i2]))// value to supposed to be taken from ROB
+                  begin
+                    run.res1_sr1[j] = run.res2_v;
+                    run.res1_sr1_refrence[j] = 1'b1;
+                  end
+                // update sr2 in rs1
+              if(!run.res1_sr2_refrence[j] &&  (run.res1_sr2_ref_value[j] == run.res2_dest[run.i2]))// value to supposed to be taken from ROB
+                  begin
+                    run.res1_sr2[j] = run.res2_v;
+                    run.res1_sr2_refrence[j] = 1'b1;
+                  end
+              // check if both sources are ready so that it is ready to get issued
+              if(run.res1_sr1_refrence[j] && run.res1_sr2_refrence[j])
+                           run.res1_ready[j] = 1'b1;
               j = j + 1;
              end
 

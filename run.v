@@ -65,10 +65,11 @@ reg res1_free_entry[0:3];// gives us the list of free enteries; 1 = free ,0 = bu
 reg [3:0]res1_opcode[0:3];
 
 reg res1_sr1_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = register file . 0 = refrence
-reg [7:0]res1_sr1[0:3];//This stores refrence either to ROB or source
-
+reg [7:0]res1_sr1[0:3];//This stores refrence either value
+reg [2:0]res1_sr1_ref_value[0:3];//This stores pointer to R
 reg res1_sr2_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = register file . 0 = refrence
 reg [7:0]res1_sr2[0:3];//This stores refrence either to ROB or values;
+reg [2:0]res1_sr2_ref_value[0:3];
 
 reg [2:0]res1_dest[0:3];// This stores refrence to ROB
 reg res1_ready[0:3];// this indicates whic enrty is ready to  executed
@@ -83,9 +84,11 @@ reg [3:0]res2_opcode[0:3];
 
 reg res2_sr1_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = register file . 0 = refrence to ROB
 reg [7:0]res2_sr1[0:3];//This stores refrence either to ROB or value;
+reg [2:0]res2_sr1_ref_value[0:3];
 
 reg res2_sr2_refrence[0:3]; // This indicates whether value to be taken  from register file or refrence;1 = refrence register file . 0 = refrence ROB
 reg [7:0]res2_sr2[0:3];//This stores refrence either to ROB or value;
+reg [2:0]res2_sr2_ref_value[0:3];// this stores ROB pointer
 
 reg [2:0]res2_dest[0:3];// This stores refrence to ROB
 reg res2_ready[0:3];// this indicates which entry is ready to  executed
@@ -150,8 +153,8 @@ initial begin
     n = n + 1;
   end
   // execution_unit
-   res1_execution_unit[0] = 1'b0;
-   res1_execution_unit[1] = 1'b0;
+   res1_execution_unit[0] = 1'b0;//free
+   res1_execution_unit[1] = 1'b0;// free
    res2_execution_unit = 1'b0;
    res1_v0_received = 1'b0;
    res1_v1_received = 1'b0;
