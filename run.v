@@ -132,6 +132,8 @@ initial begin
     commit[m] = 1'b0 ; // this while loops just initializes commit array to 0;
     v_des[m] = 1'b0;
     reg_valid[2*m+1] = 1'b1;
+    reg_file[2*m+1] = 8'h02;
+    reg_file[2*m] = 8'h02;
     reg_valid[2*m] = 1'b1;
      m = m + 1;
   end

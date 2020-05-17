@@ -111,7 +111,7 @@ module execute();
                       run.res2_v_received <= #70 1'b1;
                       $display("        Intruction : %h , Executing",run.res2_i);
                       $display("        Functional Unit : F3");
-                      $display("        Multiplying : %h * %h\n",run.res2_sr1[i],run.res2_sr2[i]);
+                      $display("        Multiplying : %h * %h\n",run.res2_sr1[k],run.res2_sr2[k]);
                      end
 
                   else if(run.res2_opcode[k] == 4'b0011)// if divide
@@ -120,7 +120,7 @@ module execute();
                       run.res2_v_received <= #70 1'b1;
                       $display("        Intruction : %h , Executing",run.res2_i);
                       $display("        Functional Unit : F3");
-                      $display("        Dividing : %h / %h\n",run.res2_sr2[i],run.res2_sr2[i]);
+                      $display("        Dividing : %h / %h\n",run.res2_sr2[k],run.res2_sr2[k]);
                       end
                   run.res2_issued[k] = 1'b1;
                   run.res2_execution_unit = 1'b1;// it  busy now

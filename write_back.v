@@ -44,14 +44,13 @@ always @(posedge run.clk)
            if(!run.res1_sr1_refrence[i] &&  (run.res1_sr1_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
            begin
 
-             //$display("Sr1 getting update");
              $display("        RS : 1");
              run.res1_sr1[i] = run.res1_v0;
              $display("        Index : %d",i);
              $display("        Rs1 : %h\n",run.res1_sr1[i]);
              run.res1_sr1_refrence[i] = 1'b1;
             end
-           // update sr2 in rs1;
+            // update sr2 in rs1
             if(!run.res1_sr2_refrence[i] &&  (run.res1_sr2_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
             begin
              //$display("Sr2 getting update");
@@ -62,6 +61,7 @@ always @(posedge run.clk)
              run.res1_sr2_refrence[i] = 1'b1;
             end
           // check if both sources are ready so that it is ready to get issued
+
             if(run.res1_sr1_refrence[i] && run.res1_sr2_refrence[i])
             begin
              $display("        RS : 1");
@@ -71,8 +71,8 @@ always @(posedge run.clk)
              //$display("%h , Made Ready",run.res1_instructions[i]);
             end
 
-
             // update sr1 in rs2
+            //$display("Wrong : %h %h %h ",run.res2_sr1_refrence[i]  ,run.res2_sr1_ref_value[i]   ,  run.res1_dest[run.i0]);
             if(!run.res2_sr1_refrence[i] &&  (run.res2_sr1_ref_value[i] == run.res1_dest[run.i0]))// value to supposed to be taken from ROB
             begin
 

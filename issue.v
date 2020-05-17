@@ -162,7 +162,7 @@ always @(posedge run.clk)
                        4'b0010,4'b0011 :
                        begin
                            // check which entry is free and put it in that entry
-                           if(run.res1_no_of_enteries < 4)
+                           if(run.res2_no_of_enteries < 4)
                                      begin
                                        $display("        Decoded : %h , Location : RS2 \n",run.instruction_queue[run.instruction_queue_head]);
                                         // updating ROB
